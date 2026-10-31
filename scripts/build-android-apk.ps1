@@ -20,6 +20,24 @@ if (-not $sdkRoot) {
 $env:ANDROID_SDK_ROOT = $sdkRoot
 $env:ANDROID_HOME = $sdkRoot
 
+function Get-JavaMajorVersion([string]$jdkHome) {
+  $javaExe = Join-Path $jdkHome "bin\java.exe"
+  if (-not (Test-Path $javaExe)) { return 0 }
+  # java -version prints to stderr; keep that from tripping $ErrorActionPreference = "Stop".
+  $ErrorActionPreference = "Continue"
+  $versionLine = (& $javaExe -version 2>&1 | Select-Object -First 1).ToString()
+  if ($versionLine -match '"1\.(\d+)') { return [int]$Matches[1] }
+  if ($versionLine -match '"(\d+)') { return [int]$Matches[1] }
+  return 0
+}
+
+# The Android Gradle plugin needs JDK 17+. Fall back to Android Studio's bundled JDK when
+# JAVA_HOME is unset or points at an older Java (for example a system-wide Java 8).
+if ($javaHome -and (Get-JavaMajorVersion $javaHome) -lt 17) {
+  Write-Host "JAVA_HOME ($javaHome) is older than Java 17; trying Android Studio's JDK instead."
+  $javaHome = $null
+}
+
 if (-not $javaHome -and (Test-Path (Join-Path $studioJbr "bin\java.exe"))) {
   $javaHome = $studioJbr
 }
