@@ -36,6 +36,7 @@ export function Account({ account, clientId, onSignOut, onChangeApp }: AccountPr
       </div>
 
       <p className="muted small">Your sign-in is stored only on this phone, in its secure keystore.</p>
+      <p className="muted small">Yoto-PA {__APP_VERSION__}</p>
     </div>
   );
 }

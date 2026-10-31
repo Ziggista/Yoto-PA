@@ -1,3 +1,8 @@
+param(
+  # Build a signed release APK (assembleRelease) instead of a debug APK.
+  [switch]$Release
+)
+
 $ErrorActionPreference = "Stop"
 
 $androidProjectDir = Join-Path $PSScriptRoot "..\android"
@@ -57,7 +62,11 @@ if (-not (Test-Path $gradleWrapper)) {
 Push-Location $androidProjectDir
 
 try {
-  & $gradleWrapper assembleDebug
+  $task = if ($Release) { "assembleRelease" } else { "assembleDebug" }
+  & $gradleWrapper $task
+  if ($LASTEXITCODE -ne 0) {
+    throw "Gradle $task failed with exit code $LASTEXITCODE."
+  }
 }
 finally {
   Pop-Location

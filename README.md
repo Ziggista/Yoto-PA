@@ -37,6 +37,8 @@ npm run android:apk:debug  # Windows: build a debug APK with Android Studio's JD
 npm run android:open       # open in Android Studio
 ```
 
+- Releases: `npm run release -- 0.1.0-beta.1` builds a signed APK on this PC and publishes a GitHub
+  release. See `docs/releasing.md`.
 - App ID: `dev.ziggi.yotopa`
 - OAuth callback: `dev.ziggi.yotopa://auth/callback`
 
