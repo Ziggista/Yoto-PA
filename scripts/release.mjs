@@ -34,7 +34,11 @@ const needsShell = (command) => isWindows && (command === "npm" || command === "
 
 function run(command, commandArgs, options = {}) {
   console.log(`> ${command} ${commandArgs.join(" ")}`);
-  const result = spawnSync(command, commandArgs, { cwd: appDir, stdio: "inherit", shell: needsShell(command), ...options });
+  // With a shell, pass one command string (the arguments here are simple tokens) to avoid Node's
+  // DEP0190 warning about unescaped argument arrays.
+  const result = needsShell(command)
+    ? spawnSync([command, ...commandArgs].join(" "), { cwd: appDir, stdio: "inherit", shell: true, ...options })
+    : spawnSync(command, commandArgs, { cwd: appDir, stdio: "inherit", shell: false, ...options });
   if (result.status !== 0) {
     throw new Error(`${command} ${commandArgs.join(" ")} exited with ${result.status}`);
   }
@@ -45,7 +49,6 @@ function output(command, commandArgs) {
     cwd: appDir,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
-    shell: needsShell(command),
   }).trim();
 }
 
@@ -113,6 +116,17 @@ if (versionCode <= previousCode) {
 console.log(`\nReleasing Yoto-PA ${version} (versionCode ${versionCode}${parsed.prerelease ? ", pre-release" : ""})${dryRun ? " [dry run]" : ""}\n`);
 
 // --- Bump and build --------------------------------------------------------------------------
+// `cap sync` regenerates these with plugins in filesystem order, which differs between machines.
+// Put the committed copies back so a release never leaves the tree dirty.
+const GENERATED_GRADLE_FILES = ["android/capacitor.settings.gradle", "android/app/capacitor.build.gradle"];
+const restoreGeneratedFiles = () => {
+  try {
+    run("git", ["checkout", "--", ...GENERATED_GRADLE_FILES]);
+  } catch {
+    // Best effort.
+  }
+};
+
 const restoreVersionFiles = () => {
   try {
     run("git", ["checkout", "--", "package.json", "package-lock.json"]);
@@ -147,9 +161,11 @@ try {
   apkOut = resolve(appDir, "release", `Yoto-PA-${version}.apk`);
   copyFileSync(signedApk, apkOut);
 } catch (error) {
+  restoreGeneratedFiles();
   restoreVersionFiles();
   fail(error.message);
 }
+restoreGeneratedFiles();
 
 const apkHash = await sha256(apkOut);
 const apkMb = (statSync(apkOut).size / 1024 / 1024).toFixed(1);
