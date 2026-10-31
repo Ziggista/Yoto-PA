@@ -1,8 +1,10 @@
 # iOS plan
 
 Yoto-PA is written so the same web layer runs on iOS. Build tooling (Xcode project under `ios/`,
-GitHub Actions macOS → TestFlight workflow, Core NFC entitlement, signing) is covered in
-`docs/ios-build.md`. This page covers app behaviour on iOS and what is deliberately left for later.
+Core NFC entitlement, signing) is covered in `docs/ios-build.md`.
+
+Builds and CI run locally only. Do not add GitHub Actions or other cloud CI that uses paid minutes;
+an iOS build needs a local Mac. This page covers app behaviour on iOS and what is deliberately left for later.
 
 Search the code for `IOS-LATER` to find every deferred item.
 
