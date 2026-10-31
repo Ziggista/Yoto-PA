@@ -13,6 +13,7 @@ from YotoWebMgr; the backend, worker and Kubernetes pieces were removed in the f
 - All NFC access goes through `src/lib/nfc.ts` and must start from a user action, so iOS keeps working.
 - Keep screens small and in `src/screens/`. Do not grow a single giant `App.tsx` again.
 - Run `npm run build` before committing; it type-checks.
+- No GitHub Actions or other cloud CI. All builds and checks run locally on Ziggi-PC (no CI minutes).
 
 ## Roadmap after 0.1
 
