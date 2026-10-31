@@ -16,7 +16,8 @@
     "ios:open": "npx cap open ios",
     "typecheck": "tsc -b",
     "capacitor:sync:after": "node scripts/override-capacitor-ios.mjs",
-    "capacitor:update:after": "node scripts/override-capacitor-ios.mjs"
+    "capacitor:update:after": "node scripts/override-capacitor-ios.mjs",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.1",

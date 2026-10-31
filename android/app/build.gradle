@@ -7,7 +7,7 @@ exec {
 }
 def versionMeta = new groovy.json.JsonSlurper().parseText(versionMetaOutput.toString('UTF-8'))
 def appVersionCode = (versionMeta.versionCode ?: 1).toInteger()
-def appVersionName = versionMeta.versionName?.toString() ?: 'v0.1b0001'
+def appVersionName = versionMeta.versionName?.toString() ?: '0.0.0+dev'
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('keystore.properties')
 if (keystorePropertiesFile.exists()) {
