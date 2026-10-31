@@ -1,11 +1,12 @@
 # Building Yoto-PA for iOS
 
-iOS apps can only be compiled on macOS. There's no Mac in this setup, so iOS builds run on a GitHub
-Actions macOS runner (`.github/workflows/ios.yml`). App behaviour on iOS and the deferred iOS work
-are in [ios.md](ios.md).
+iOS apps can only be compiled with Xcode on macOS. Ziggi-PC is Windows, and this project uses no
+cloud CI (no GitHub-hosted runners or paid build services), so **iOS builds need a Mac**. Until one is
+available the iOS project is kept ready in the repo but isn't built. App behaviour on iOS and the
+deferred iOS work are in [ios.md](ios.md).
 
-Status: the iOS project is scaffolded but has **not been compiled yet**. Run the `unsigned` mode
-once to prove it builds.
+Status: the iOS project is scaffolded and `npx cap sync ios` works, but it has **not been compiled
+in Xcode yet**.
 
 ## What's in the repo
 
@@ -14,54 +15,55 @@ once to prove it builds.
 | `ios/` | Capacitor 8 Xcode project (Swift Package Manager, no CocoaPods). Bundle ID `dev.ziggi.yotopa`, iOS 15+. |
 | `ios/App/App/Info.plist` | `NFCReaderUsageDescription`, `CFBundleURLTypes` for the `dev.ziggi.yotopa` sign-in callback, `ITSAppUsesNonExemptEncryption = false` (skips the TestFlight export-compliance question). |
 | `ios/App/App/App.entitlements` | Core NFC tag reading (`TAG` format). Wired up via `CODE_SIGN_ENTITLEMENTS`. |
-| `ios/ExportOptions.plist` | App Store Connect export with automatic signing and direct upload. |
+| `ios/ExportOptions.plist` | App Store Connect export with automatic signing, for command-line archives. |
 | `ios-plugins/exxili-capacitor-nfc/` | Local copy of the NFC plugin's Swift sources. Upstream pins `capacitor-swift-pm` to `branch: main`, which SwiftPM can't resolve next to Capacitor 8's exact version. This is also where the blank-card format port goes (IOS-LATER in `NFCWriter.swift`). |
 | `scripts/override-capacitor-ios.mjs` | Runs automatically after `npx cap sync` (the `capacitor:sync:after` hook) and points `CapApp-SPM` at `ios-plugins/` instead of `node_modules`. |
 
-`npm run ios:sync` builds the web app and syncs it into `ios/`. It works on Windows too; only the
-Xcode build needs macOS.
+`npm run ios:sync` builds the web app and syncs it into `ios/`. It runs on Windows too, so keep
+running it there when web code changes; only the Xcode step needs the Mac.
 
-## Workflow modes
+## Which Mac
 
-Actions → **iOS build** → Run workflow, then pick a mode. Both are manual only: on a private
-repo, macOS minutes count 10× against the free 2,000 a month, so expect roughly 20 builds a month.
+Any Apple Silicon Mac that runs current Xcode. The cheapest sensible option is a used **Mac mini M1
+(2020)**, ideally 16 GB RAM / 512 GB. Avoid Intel Macs: Apple is dropping them from macOS and Xcode.
 
-- **unsigned**: no Apple account needed. Compiles the app and uploads `Yoto-PA-unsigned.ipa` as a
-  workflow artifact. You can re-sign it with Sideloadly or AltStore and a free Apple ID to try the app
-  on an iPhone. It expires after 7 days, and **NFC won't work** because free accounts can't use Core NFC.
-- **testflight**: needs the Apple Developer Program and the secrets below. Archives, signs
-  automatically and uploads to TestFlight. Card reading and writing work.
+## Apple account: free vs paid
 
-## TestFlight setup (when you join the Apple Developer Program)
+| | Free Apple ID | Apple Developer Program (US$99/yr) |
+| --- | --- | --- |
+| Install on your own iPhones | Yes, from Xcode over USB | Yes, via TestFlight or Xcode |
+| App lifetime | Re-install every 7 days | 90 days per TestFlight build |
+| **NFC card reading/writing** | **No** (Apple doesn't allow Core NFC for free teams) | Yes |
 
-1. Enrol at https://developer.apple.com/programs/enroll/ (US$99/yr, individual is fine). Approval can
-   take up to 48 hours.
-2. Note your **Team ID**: developer.apple.com → Account → Membership details.
-3. Register the App ID: Certificates, Identifiers & Profiles → Identifiers → + → App IDs → App.
-   Bundle ID (explicit) `dev.ziggi.yotopa`, and tick **NFC Tag Reading**.
-4. Create the app: App Store Connect → Apps → + → New App with the same bundle ID. Nothing is
-   submitted for review; internal TestFlight testing needs no review.
-5. Create an API key: App Store Connect → Users and Access → Integrations → App Store Connect API →
-   Team Keys → +, role **Admin** (so Xcode can create the cloud-managed distribution certificate and
-   profiles). Download the `.p8` (one download only) and note the **Key ID** and **Issuer ID**.
-6. Add repository secrets (Settings → Secrets and variables → Actions):
+## Building on the Mac
 
-   | Secret | Value |
-   | --- | --- |
-   | `APPLE_TEAM_ID` | Team ID |
-   | `APP_STORE_CONNECT_KEY_ID` | Key ID |
-   | `APP_STORE_CONNECT_ISSUER_ID` | Issuer ID |
-   | `APP_STORE_CONNECT_KEY_P8` | the `.p8` base64 encoded. PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("AuthKey_XXXX.p8"))` |
+1. Install Xcode from the App Store, plus Node 22 and git.
+2. `git clone https://github.com/Ziggista/Yoto-PA && cd Yoto-PA && npm ci && npm run ios:sync && npm run ios:open`
+3. In Xcode, select the **App** target → Signing & Capabilities, tick *Automatically manage signing*
+   and pick your team.
+   - **Free Apple ID:** remove the **Near Field Communication Tag Reading** capability first, or
+     signing fails. (Don't commit that change.)
+4. Plug in the iPhone, enable Developer Mode on it when prompted, pick it as the run destination and
+   press Run.
 
-7. Run the workflow in `testflight` mode. The build appears in App Store Connect → TestFlight about
-   15 minutes later. Add both of you as internal testers once, then install from the TestFlight app.
+### TestFlight (paid program)
 
-The build number is the workflow run number, so every upload is unique. The marketing version is set
-in Xcode (`MARKETING_VERSION`, currently 0.1.0).
+One-time setup:
 
-## Building on a Mac instead
+1. Enrol at https://developer.apple.com/programs/enroll/ (individual is fine; approval can take
+   up to 48 hours).
+2. Certificates, Identifiers & Profiles → Identifiers → + → App IDs → App. Bundle ID (explicit)
+   `dev.ziggi.yotopa`, tick **NFC Tag Reading**.
+3. App Store Connect → Apps → + → New App with the same bundle ID. Nothing is submitted for review;
+   internal TestFlight testing needs no review.
 
-On any Apple Silicon Mac with current Xcode: `npm ci && npm run ios:sync && npm run ios:open`, pick
-your team under Signing & Capabilities, and run on a connected iPhone. Free personal teams can't sign
-the NFC entitlement, so remove **Near Field Communication Tag Reading** from the capability list
-for a free-account build.
+Each release: in Xcode choose *Any iOS Device*, then Product → Archive → Distribute App →
+TestFlight & App Store. Bump the build number (`CURRENT_PROJECT_VERSION`) for each upload. Add both of
+you as internal testers once, then install from the TestFlight app.
+
+## Optional later: automate builds on the Mac
+
+If the Mac stays on, it can be registered as a **self-hosted** GitHub Actions runner (Settings →
+Actions → Runners → New self-hosted runner → macOS). Jobs that target `runs-on: [self-hosted, macOS]`
+run on your own hardware and use no GitHub minutes. No workflow is committed for this yet; add one
+only once the runner exists, and never target GitHub-hosted runners.
