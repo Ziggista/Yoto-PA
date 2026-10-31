@@ -1,2 +1,0 @@
-"""Yoto worker integration package."""
-

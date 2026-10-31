@@ -1,2 +1,0 @@
-"""Yoto integration package."""
-

@@ -1,2 +1,0 @@
-"""Core settings and utilities."""
-

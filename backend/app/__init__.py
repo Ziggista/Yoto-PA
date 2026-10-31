@@ -1,2 +1,0 @@
-"""YotoWebMgr backend package."""
-
