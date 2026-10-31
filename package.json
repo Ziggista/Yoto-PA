@@ -1,5 +1,5 @@
 {
-  "name": "yotowebmgr-frontend",
+  "name": "yoto-pa",
   "version": "0.1.0",
   "license": "MIT",
   "private": true,
@@ -7,12 +7,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:ota-bundle": "python3 scripts/build_live_update_bundle.py",
     "android:override-settings": "node scripts/override-capacitor-settings.mjs",
     "preview": "vite preview",
     "android:sync": "npm run build && npx cap sync android && npm run android:override-settings",
     "android:open": "npx cap open android",
-    "android:apk:debug": "npm run build && npx cap sync android && npm run android:override-settings && powershell -ExecutionPolicy Bypass -File scripts/build-android-apk.ps1"
+    "android:apk:debug": "npm run build && npx cap sync android && npm run android:override-settings && powershell -ExecutionPolicy Bypass -File scripts/build-android-apk.ps1",
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
@@ -20,13 +20,10 @@
     "@capacitor/browser": "^8.0.4",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
-    "@capacitor/local-notifications": "^8.2.1",
-    "@capgo/capacitor-updater": "^8.51.2",
     "@exxili/capacitor-nfc": "^0.0.13",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-h5-audio-player": "^3.10.2",
-    "react-router-dom": "^6.26.1"
+    "@aparajita/capacitor-secure-storage": "^8.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.4",

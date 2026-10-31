@@ -6,10 +6,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
-const frontendDir = resolve(scriptDir, "..");
-const repoDir = resolve(frontendDir, "..");
-const packageJsonPath = resolve(frontendDir, "package.json");
-const versionSeriesPath = resolve(frontendDir, "version-series.json");
+const appDir = resolve(scriptDir, "..");
+const repoDir = appDir;
+const packageJsonPath = resolve(appDir, "package.json");
+const versionSeriesPath = resolve(appDir, "version-series.json");
 
 function gitOutput(args, fallback) {
   try {

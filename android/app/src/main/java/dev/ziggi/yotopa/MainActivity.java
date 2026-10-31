@@ -1,4 +1,4 @@
-package com.yoto.webmanager;
+package dev.ziggi.yotopa;
 
 import com.getcapacitor.BridgeActivity;
 

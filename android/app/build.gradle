@@ -15,10 +15,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.yoto.webmanager"
+    namespace = "dev.ziggi.yotopa"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.yoto.webmanager"
+        applicationId "dev.ziggi.yotopa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode appVersionCode

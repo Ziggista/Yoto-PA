@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">YotoWebMgr</string>
-    <string name="title_activity_main">YotoWebMgr</string>
-    <string name="package_name">com.yoto.webmanager</string>
-    <string name="custom_url_scheme">com.yoto.webmanager</string>
+    <string name="app_name">Yoto-PA</string>
+    <string name="title_activity_main">Yoto-PA</string>
+    <string name="package_name">dev.ziggi.yotopa</string>
+    <string name="custom_url_scheme">dev.ziggi.yotopa</string>
 </resources>

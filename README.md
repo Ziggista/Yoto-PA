@@ -1,178 +1,61 @@
-# YotoWebMgr
+# Yoto-PA
 
-YotoWebMgr is a self-hosted household media-library and Yoto MYO card management application.
+Yoto-PA is a phone app for Yoto families. It signs in to your own Yoto account through your own Yoto
+developer app, lists your Make Your Own playlists and family library, and writes a playlist link onto a
+blank DIY NFC card so a Yoto player plays it.
 
-This repository currently includes:
+There is no server. The app talks to `login.yotoplay.com` and `api.yotoplay.com` directly, and your
+sign-in is kept in the phone's secure storage (Android Keystore, iOS Keychain).
 
-- `frontend`: React + TypeScript + Vite
-- `backend`: FastAPI + Pydantic v2 + SQLAlchemy-ready structure
-- `worker`: Python worker process for background jobs
-- `k8s`: MicroK8s-oriented Kubernetes manifests
+Platforms: Android now, iOS next. Forked from YotoWebMgr, whose history is preserved here.
 
-## Repository Layout
+## What's in release 0.1
 
-```text
-YotoWebMgr/
-├── backend/
-├── docs/
-├── frontend/
-├── k8s/
-├── scripts/
-├── shared/
-└── worker/
-```
+- Guided setup of your own Yoto developer app, then PKCE sign-in in the system browser.
+- My playlists (`/content/mine`) and family library (`/card/family/library`) with search.
+- Write a playlist link to a DIY card, then scan it to check it.
+- Scan any card to see which playlist it plays.
 
-## Quick Start
+Upload of new audio comes in a later release.
 
-### Backend
+## Develop
 
 ```bash
-cd backend
-python3 -m venv .venv
-.venv/bin/python -m pip install -e '.[dev]'
-.venv/bin/uvicorn app.main:app --reload
-```
-
-### Worker
-
-```bash
-cd worker
-python3 -m venv .venv
-.venv/bin/python -m pip install -e '.[dev]'
-.venv/bin/python -m app.worker
-```
-
-### Frontend
-
-```bash
-cd frontend
 npm install
-npm run dev
+npm run dev          # browser preview at http://localhost:5173 (no NFC)
+npm run build        # type-check and build dist/
 ```
 
-### MicroK8s Dev Deployment
+For browser sign-in during development, add `http://localhost:5173/auth/callback` to your Yoto
+app's allowed callback URLs as well.
 
-Docker Desktop is not used. Build and deploy from scratch with WSL-native `buildah` and the
-MicroK8s registry:
+## Android
 
 ```bash
-k8s/scripts/deploy-dev.sh
+npm run android:sync       # build, cap sync, re-point the patched NFC plugin
+npm run android:apk:debug  # Windows: build a debug APK with Android Studio's JDK
+npm run android:open       # open in Android Studio
 ```
 
-From Windows PowerShell, use the wrapper that runs the same script through WSL:
+- App ID: `dev.ziggi.yotopa`
+- OAuth callback: `dev.ziggi.yotopa://auth/callback`
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/dev/redeploy.ps1
-```
+`android-plugins/exxili-capacitor-nfc` is a patched copy of the NFC plugin that formats blank Type 2
+tags correctly. `npm run android:sync` re-points Gradle at it after every `cap sync`.
 
-The dev deployment script now preserves the existing `yotowebmgr` namespace, PostgreSQL data, and
-media PVC contents by default. That means uploads, library rows, playlist drafts, and other stored
-state survive a normal rebuild/redeploy.
-
-If you explicitly want the old clean-slate behavior, pass `--destructive`:
-
-```bash
-k8s/scripts/deploy-dev.sh --destructive
-```
-
-If you want a full wipe without preserving the existing Kubernetes Secret or Yoto credential-row
-backup, pass `--force`, which now implies `--destructive`:
-
-```bash
-k8s/scripts/deploy-dev.sh --force
-```
-
-`RESET_DATABASE_ON_START` now stays `false` in the dev overlay so the API does not silently drop
-the PostgreSQL `public` schema during ordinary redeploys.
-
-The deployment script starts or refreshes the local frontend port-forward automatically. To check or
-restart it later, run the dedicated helper:
-
-```bash
-k8s/scripts/open-dev.sh
-```
-
-Or from Windows PowerShell:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/dev/open-dev.ps1
-```
-
-Then browse to:
+## Layout
 
 ```text
-http://127.0.0.1:5175/
+src/
+  App.tsx            tabs, OAuth callback handling, data loading
+  screens/           Setup, Library, LinkCard, ScanCard, Account
+  yoto/              config, PKCE, auth (tokens + refresh), API client, card link URL
+  lib/               secure storage and platform-neutral NFC helpers
+android/             Capacitor Android project
+android-plugins/     patched NFC plugin
+docs/                setup guide and architecture notes
 ```
-
-The deploy script now defaults the frontend port-forward bind address to `0.0.0.0`, so the same
-dev deployment is reachable from remote devices over the current Windows/Tailscale forwarding path
-without needing to pass `--bind-address 0.0.0.0` each time.
-
-Use this URL for the MicroK8s app. Port `5173` is reserved for local Vite development and can show
-stale local state if it is running separately.
-When testing the deployed app, quick-select a local household user first. The Yoto settings screen
-and OAuth actions sit behind that local auth gate.
-
-### Dev Shortcuts
-
-Common commands are wrapped so routine checks use less typing:
-
-```bash
-scripts/dev/verify.sh      # backend tests, frontend build, shell syntax checks
-scripts/dev/redeploy.sh    # MicroK8s rebuild/redeploy that preserves state by default
-k8s/scripts/deploy-dev.sh  # Linux/WSL deploy entrypoint; add --destructive for a clean reset
-k8s/scripts/open-dev.sh    # ensure the Kubernetes frontend is forwarded on http://127.0.0.1:5175/
-scripts/dev/status.sh      # pods, services, recent API logs
-scripts/dev/seed-radio.sh  # add the ABC Triple J test stream to the current dev API
-scripts/media/seed-copyleft-test-media.sh # seed local audiobook + kids album fixtures outside Git
-```
-
-When you deploy with `--android-build` or `--android-bundle`, the script now stamps the Android
-wrapper with a user-facing version like `v0.1b0098`, uses the matching integer build number as the
-Android `versionCode`, and publishes the generated APK/AAB metadata to the frontend under
-`/downloads/android/latest.json`. The Settings page uses that manifest to offer a direct APK
-download from the live dev server.
-
-PowerShell wrappers are also available:
-
-```text
-scripts/dev/redeploy.ps1
-scripts/dev/open-dev.ps1
-```
-
-If you want to force a specific distro instead of the first installed one, set
-`YOTOWEBMGR_WSL_DISTRO` before running the wrapper.
-
-Filesystem imports use a persistent MicroK8s volume mounted into the API and worker pods at:
-
-```text
-/var/lib/yotowebmgr/media/imports
-```
-
-Use `/var/lib/yotowebmgr/media/imports/drop` for files copied into the pod-backed import area and
-`/var/lib/yotowebmgr/media/imports/uploads` for browser-uploaded files staged by the API.
-
-For repeatable end-to-end tests after a destructive redeploy, prefer browser upload through
-`POST /api/v1/imports/uploads` or the Import screen. The `drop` directory is only reliable if the
-current PVC has been seeded again after namespace deletion.
-
-## Initial Scope
-
-The current scaffold provides:
-
-- FastAPI health API under `/api/v1`
-- Auth scaffold with quick household user selection, Argon2 password support hooks, and OAuth 2.0 placeholders
-- Import screen with browser upload and persistent filesystem drop-area support
-- Library rows with embedded playback for staged media files
-- Android-ready Capacitor wrapper with native NFC read/write support
-- Yoto OAuth with PKCE, token persistence in Kubernetes Secrets, and live debug probes
-- Local Yoto playlist drafts, generated live `POST /content` payload previews, and live playlist creation
-- Card scan-dump capture plus staged or direct blank-card write workflows
-- Python worker bootstrap
-- Mobile-first React shell with base navigation
-- Kubernetes base manifests for namespace, frontend, api, worker, and postgres
-- Destructive dev deployment helpers and frontend/backend build stamping
 
 ## License
 
-YotoWebMgr is licensed under the MIT License. See [LICENSE](LICENSE).
+MIT
