@@ -17,5 +17,5 @@ from YotoWebMgr; the backend, worker and Kubernetes pieces were removed in the f
 ## Roadmap after 0.1
 
 1. Upload: pick audio on the phone, upload and transcode via Yoto, create a MYO playlist.
-2. iOS platform, TestFlight build and Core NFC entitlement.
+2. iOS platform, TestFlight build and Core NFC entitlement. App-side plan in docs/ios.md; grep `IOS-LATER` for deferred items.
 3. Playlist detail (chapters, artwork) and card history.

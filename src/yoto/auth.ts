@@ -89,6 +89,9 @@ export async function startSignIn(clientId: string): Promise<void> {
   const url = `${YOTO_AUTH_BASE_URL}/authorize?${query.toString()}`;
 
   if (Capacitor.isNativePlatform()) {
+    // Android: Custom Tab. iOS: SFSafariViewController, closed again in completeSignIn.
+    // IOS-LATER: consider ASWebAuthenticationSession (via a small plugin) so iOS shows its standard
+    // "wants to use yotoplay.com to sign in" sheet and shares Safari's Yoto login cookies.
     await Browser.open({ url });
   } else {
     window.location.assign(url);

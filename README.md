@@ -7,7 +7,7 @@ blank DIY NFC card so a Yoto player plays it.
 There is no server. The app talks to `login.yotoplay.com` and `api.yotoplay.com` directly, and your
 sign-in is kept in the phone's secure storage (Android Keystore, iOS Keychain).
 
-Platforms: Android now, iOS next. Forked from YotoWebMgr, whose history is preserved here.
+Platforms: Android now, iOS next (see docs/ios.md). Forked from YotoWebMgr, whose history is preserved here.
 
 ## What's in release 0.1
 

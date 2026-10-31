@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { YotoPlaylist } from "../yoto/api";
 import { cardLinkUrl } from "../yoto/cardLink";
-import { readTagOnce, sameUri, type TagReadResult } from "../lib/nfc";
+import { NfcCancelledError, readTagOnce, sameUri, type TagReadResult } from "../lib/nfc";
+import { nfcBehaviour } from "../lib/platform";
 import { Cover } from "./Library";
 
 interface ScanCardProps {
@@ -24,6 +25,9 @@ export function ScanCard({ playlists, nfcAvailable, onOpen }: ScanCardProps) {
     try {
       setResult(await readTagOnce());
     } catch (scanError) {
+      if (scanError instanceof NfcCancelledError) {
+        return;
+      }
       setError(scanError instanceof Error ? scanError.message : "The NFC read failed.");
     } finally {
       setScanning(false);
@@ -40,7 +44,7 @@ export function ScanCard({ playlists, nfcAvailable, onOpen }: ScanCardProps) {
       {!nfcAvailable ? <p className="notice">NFC isn't available here.</p> : null}
 
       <button type="button" className="primary" disabled={!nfcAvailable || scanning} onClick={() => void scan()}>
-        {scanning ? "Hold the card to the phone…" : "Scan a card"}
+        {scanning ? (nfcBehaviour().systemSheet ? "Scanning…" : `${nfcBehaviour().holdHint}…`) : "Scan a card"}
       </button>
 
       {error ? <p className="error">{error}</p> : null}

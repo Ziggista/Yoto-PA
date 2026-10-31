@@ -1,10 +1,18 @@
 import { Capacitor } from "@capacitor/core";
 import { NFC, type NDEFMessagesTransformable } from "@exxili/capacitor-nfc";
+import { isUserCancelledNfc, nfcBehaviour } from "./platform";
 
 /**
  * Platform-neutral NFC helpers. Every call here must start from a user tap: iOS only allows
  * Core NFC sessions from a user action and shows its own system sheet while one is open.
  */
+
+/** Raised when the user closes the iOS scan sheet, so screens can reset quietly. */
+export class NfcCancelledError extends Error {}
+
+function nfcError(message: string): Error {
+  return isUserCancelledNfc(message) ? new NfcCancelledError(message) : new Error(message);
+}
 
 export interface TagReadResult {
   uri: string | null;
@@ -54,7 +62,7 @@ export function encodeUriRecordPayload(uri: string): Uint8Array {
 }
 
 /** Writes a single URI record to the next tag presented. Resolves once the plugin confirms. */
-export function writeUriToTag(uri: string, timeoutMs = 20_000): Promise<void> {
+export function writeUriToTag(uri: string, timeoutMs = nfcBehaviour().timeoutMs): Promise<void> {
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (error?: Error) => {
@@ -72,14 +80,14 @@ export function writeUriToTag(uri: string, timeoutMs = 20_000): Promise<void> {
       }
     };
     const removeWrite = NFC.onWrite(() => finish());
-    const removeError = NFC.onError((nfcError) => finish(new Error(nfcError.error || "The NFC write failed.")));
+    const removeError = NFC.onError((error) => finish(nfcError(error.error || "The NFC write failed.")));
     const timer = window.setTimeout(() => {
       if (isAndroid()) {
         void NFC.cancelWriteAndroid().catch(() => undefined);
       } else {
         void NFC.cancelScan().catch(() => undefined);
       }
-      finish(new Error("No card was detected in time. Try again and hold the card flat against the back of the phone."));
+      finish(new Error(`No card was detected in time. Try again. ${nfcBehaviour().holdHint}.`));
     }, timeoutMs);
 
     NFC.writeNDEF({ records: [{ type: "U", payload: encodeUriRecordPayload(uri) }] }).catch((startError: unknown) =>
@@ -89,7 +97,7 @@ export function writeUriToTag(uri: string, timeoutMs = 20_000): Promise<void> {
 }
 
 /** Reads the next tag presented and returns the first URI record, if any. */
-export function readTagOnce(timeoutMs = 20_000): Promise<TagReadResult> {
+export function readTagOnce(timeoutMs = nfcBehaviour().timeoutMs): Promise<TagReadResult> {
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (result: TagReadResult | null, error?: Error) => {
@@ -113,7 +121,7 @@ export function readTagOnce(timeoutMs = 20_000): Promise<TagReadResult> {
       const uri = typeof uriRecord?.payload === "string" ? uriRecord.payload.trim() || null : null;
       finish({ uri, uid: decoded.tagInfo?.uid ?? null });
     });
-    const removeError = NFC.onError((nfcError) => finish(null, new Error(nfcError.error || "The NFC read failed.")));
+    const removeError = NFC.onError((error) => finish(null, nfcError(error.error || "The NFC read failed.")));
     const timer = window.setTimeout(() => {
       if (!isAndroid()) {
         void NFC.cancelScan().catch(() => undefined);

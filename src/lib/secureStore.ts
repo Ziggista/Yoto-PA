@@ -3,6 +3,10 @@ import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 /**
  * Thin wrapper over Android Keystore / iOS Keychain backed storage.
  * In a desktop browser (npm run dev) the plugin falls back to localStorage.
+ *
+ * IOS-LATER: Keychain items survive uninstalling the app, so a reinstall would still be signed in
+ * with old tokens. Add a first-launch check (for example a flag in @capacitor/preferences) that
+ * clears this store once after a fresh install.
  */
 
 const KEY_PREFIX = "yotopa_";
