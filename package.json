@@ -12,18 +12,23 @@
     "android:sync": "npm run build && npx cap sync android && npm run android:override-settings",
     "android:open": "npx cap open android",
     "android:apk:debug": "npm run build && npx cap sync android && npm run android:override-settings && powershell -ExecutionPolicy Bypass -File scripts/build-android-apk.ps1",
-    "typecheck": "tsc -b"
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "typecheck": "tsc -b",
+    "capacitor:sync:after": "node scripts/override-capacitor-ios.mjs",
+    "capacitor:update:after": "node scripts/override-capacitor-ios.mjs"
   },
   "dependencies": {
+    "@aparajita/capacitor-secure-storage": "^8.0.1",
     "@capacitor/android": "^8.4.1",
     "@capacitor/app": "^8.1.1",
     "@capacitor/browser": "^8.0.4",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.6.0",
     "@exxili/capacitor-nfc": "^0.0.13",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "@aparajita/capacitor-secure-storage": "^8.0.1"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.4",
