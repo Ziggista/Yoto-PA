@@ -11,17 +11,21 @@ same steps for reference.
 3. Add the callback URL exactly as shown in Yoto-PA:
    - Android / iOS app: `dev.ziggi.yotopa://auth/callback`
    - Browser dev build: `http://localhost:5173/auth/callback`
-4. Copy the Client ID into Yoto-PA and tap **Sign in with Yoto**.
+4. Enable (pre-approve) these permissions on the Yoto app: `family:library:view` and
+   `user:content:view`.
+5. Copy the Client ID into Yoto-PA and tap **Sign in with Yoto**.
 
 ## Scopes requested
 
-`openid offline_access family:library:view user:content:view user:content:manage`
+`openid offline_access family:library:view user:content:view`
 
-`offline_access` provides the refresh token so you stay signed in. `user:content:manage` is not used
-in 0.1; it is requested now so the upload release does not need you to sign in again.
+`offline_access` provides the refresh token so you stay signed in. Upload will add
+`user:content:manage`; you'll need to enable it and sign in again when that release ships.
 
 ## Troubleshooting
 
+- **"access_denied: ... scopes that have not been pre-approved"** on the Yoto page: enable the listed
+  scopes on your Yoto app, save, and sign in again.
 - **"Callback URL mismatch"** on the Yoto page: the callback in your Yoto app must match character
   for character, including `://auth/callback`.
 - **Yoto rejected the token request**: usually a wrong Client ID, or the Yoto app was created as a

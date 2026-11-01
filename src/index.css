@@ -328,3 +328,11 @@ input {
   color: var(--accent);
   font-weight: 600;
 }
+
+.scope-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

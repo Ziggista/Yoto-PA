@@ -129,9 +129,13 @@ export function readTagOnce(timeoutMs = nfcBehaviour().timeoutMs): Promise<TagRe
       finish(null, new Error("No card was detected in time."));
     }, timeoutMs);
 
-    NFC.startScan().catch((startError: unknown) =>
-      finish(null, startError instanceof Error ? startError : new Error("Could not start NFC scanning.")),
-    );
+    // Android delivers tags to the listener while the app is in the foreground and rejects
+    // startScan, so only iOS opens a scan session.
+    if (!isAndroid()) {
+      NFC.startScan().catch((startError: unknown) =>
+        finish(null, startError instanceof Error ? startError : new Error("Could not start NFC scanning.")),
+      );
+    }
   });
 }
 

@@ -9,16 +9,16 @@ export const APP_URL_SCHEME = "dev.ziggi.yotopa";
 export const NATIVE_REDIRECT_URI = `${APP_URL_SCHEME}://auth/callback`;
 
 /**
- * Scopes for rev 1. Upload (user:content:manage) is requested now so the user does not need to
- * re-authorise when upload ships.
+ * Scopes for this release. Each one must be enabled (pre-approved) on the user's Yoto developer app,
+ * otherwise Yoto's login page stops with "access_denied: ... scopes that have not been pre-approved".
+ * Upload will add user:content:manage later; it is left out until it is used.
  */
-export const YOTO_OAUTH_SCOPE = [
-  "openid",
-  "offline_access",
-  "family:library:view",
-  "user:content:view",
-  "user:content:manage",
-].join(" ");
+export const YOTO_OAUTH_SCOPES = ["openid", "offline_access", "family:library:view", "user:content:view"];
+
+/** The scopes the user has to enable on their Yoto app (openid/offline_access are standard). */
+export const YOTO_APP_PERMISSIONS = YOTO_OAUTH_SCOPES.filter((scope) => scope.includes(":"));
+
+export const YOTO_OAUTH_SCOPE = YOTO_OAUTH_SCOPES.join(" ");
 
 /** Redirect URI used when the app runs in a desktop browser via `npm run dev`. */
 export function browserRedirectUri(): string {
