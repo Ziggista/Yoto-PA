@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { redirectUri, saveSettings, startSignIn } from "../yoto/auth";
-import { YOTO_DEVELOPER_PORTAL_URL } from "../yoto/config";
+import { YOTO_APP_PERMISSIONS, YOTO_DEVELOPER_PORTAL_URL } from "../yoto/config";
 import { CopyField } from "./CopyField";
 
 interface SetupProps {
@@ -69,6 +69,21 @@ export function Setup({ initialClientId, error, onSaved }: SetupProps) {
             In your Yoto app's settings, paste this exactly into <strong>Allowed Callback URLs</strong> and save.
           </p>
           <CopyField value={callback} />
+        </li>
+
+        <li className="card">
+          <h2>Allow these permissions</h2>
+          <p>
+            In the same Yoto app, enable these permissions (scopes) and save. If one is missing, Yoto's sign-in page
+            stops with "scopes that have not been pre-approved".
+          </p>
+          <ul className="scope-list">
+            {YOTO_APP_PERMISSIONS.map((scope) => (
+              <li key={scope} className="mono">
+                {scope}
+              </li>
+            ))}
+          </ul>
         </li>
 
         <li className="card">
